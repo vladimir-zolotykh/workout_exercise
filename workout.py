@@ -30,7 +30,6 @@ class Workout(Base):
     exercises: Mapped[List[Exercise]] = relationship(
         secondary=workout_exercise,
         back_populates="workouts",
-        # cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:
@@ -49,7 +48,6 @@ class Exercise(Base):
     workouts: Mapped[List[Workout]] = relationship(
         secondary=workout_exercise,
         back_populates="exercises",
-        # cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:

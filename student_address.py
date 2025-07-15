@@ -25,22 +25,16 @@ class Base(DeclarativeBase):
 class Student(Base):
     __tablename__ = "students"
 
-    student_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    first_name: Mapped[str] = mapped_column(String(40), nullable=False)
-    last_name: Mapped[str] = mapped_column(String(40), nullable=False)
+    student_id: Mapped[int] = mapped_column(primary_key=True)
+    first_name: Mapped[str]
+    last_name: Mapped[str]
 
-    # FK column points to *the* address row that belongs to this student.
-    address_id: Mapped[int | None] = mapped_column(
-        ForeignKey("addresses.address_id", ondelete="SET NULL"),
-        unique=True,  # <-- guarantees at most one address per student
+    # ── Relationship only; no FK column here ──
+    address: Mapped["Address"] = relationship(
+        back_populates="student",
+        uselist=False,
+        cascade="all, delete-orphan",
     )
-
-    # -- Relationship ---------------------------------------------------
-    # address: Mapped[Optional["Address"]] = relationship(
-    #     back_populates="student",
-    #     uselist=False,  # <-- one‑to‑one, not a list
-    #     cascade="all, delete-orphan",
-    # )
 
     def __repr__(self) -> str:
         return f"<Student {self.student_id} {self.first_name} {self.last_name}>"
@@ -49,21 +43,16 @@ class Student(Base):
 class Address(Base):
     __tablename__ = "addresses"
 
-    address_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    address: Mapped[str] = mapped_column(String(120), nullable=False)
-    city: Mapped[str] = mapped_column(String(60), nullable=False)
-    zipcode: Mapped[str] = mapped_column(String(15), nullable=False)
+    address_id: Mapped[int] = mapped_column(primary_key=True)
+    address: Mapped[str]
+    city: Mapped[str]
+    zipcode: Mapped[str]
 
-    # “Link back” – points to the owning student.
-    # Must be UNIQUE to keep the association one‑to‑one.
-    student_id: Mapped[int | None] = mapped_column(
+    student_id: Mapped[int] = mapped_column(
         ForeignKey("students.student_id", ondelete="CASCADE"),
         unique=True,
     )
-    # student: Mapped[Optional[Student]] = relationship(
-    #     back_populates="address",
-    #     uselist=False,
-    # )
+    student: Mapped[Student] = relationship(back_populates="address", uselist=False)
 
     def __repr__(self) -> str:
         return f"<Address {self.address_id} {self.city} {self.zipcode}>"
@@ -77,6 +66,6 @@ with Session(engine) as session:
     session.add(s)
     session.commit()
     s2: Student = session.query(Student).filter_by(last_name="Lovelace").one()
-    print(s2.address.city)  # → "London"
+    print(s2.address.city)  # "London"
     s2.address = None  # becomes an orphan ➜ will be deleted on flush
     session.commit()

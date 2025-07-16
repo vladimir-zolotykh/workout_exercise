@@ -20,6 +20,9 @@ class Parent(Base):
     child_id: Mapped[Optional[int]] = mapped_column(ForeignKey("child_table.id"))
     child: Mapped[Optional["Child"]] = relationship(back_populates="parents")
 
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}, id={self.id}, child_id={self.child_id}>"
+
 
 class Child(Base):
     __tablename__ = "child_table"
@@ -27,21 +30,23 @@ class Child(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     parents: Mapped[List["Parent"]] = relationship(back_populates="child")
 
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} id={self.id} parents={self.parents!r}"
+
 
 if __name__ == "__main__":
     engine = create_engine(
         "sqlite+pysqlite:///:memory:",
-        echo=True,
+        # echo=True,
         future=True,
     )
     Base.metadata.create_all(engine)
     with Session(engine) as session:
-        p = Parent()
+        p1 = Parent()
+        p2 = Parent()
+        p3 = Parent()
         c1 = Child()
-        c2 = Child()
-        p.children.append(c1)
-        p.children.append(c2)
-        session.add(p)
+        c1.parents.extend([p1, p2])
+        session.add(c1)
         session.commit()
-        print(p.children)
-        print(c1, c2)
+        print(p1, c1)

@@ -8,6 +8,10 @@ from datetime import datetime
 exercises = ["squat", "bench press", "deadlift"]
 
 
+class ExerciseNameError(Exception):
+    pass
+
+
 @dataclass
 class Exercise:
     name: str
@@ -25,6 +29,8 @@ if __name__ == "__main__":
     workout: Workout = Workout(datetime.now())
     name: str
     while name := input("exercise name? "):
+        if name not in exercises + ["quit"]:
+            raise ExerciseNameError(name)
         if name == "quit":
             break
         weight: float = float(input("weight? "))

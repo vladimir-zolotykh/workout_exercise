@@ -47,16 +47,19 @@ def abbreviated_input(prompt: str, choices: List[str] = exercises + ["quit"]) ->
 
 
 if __name__ == "__main__":
-    workout_id: int = 0
+    workout_id: int = 1
     logbook: Logbook = Logbook()
     workout_name: str
-    while workout_name := input("workout name? "):
-        if workout_name == "quit":
+    default_workout_name: str = f"workout#{workout_id}"
+    while True:
+        workout_name = input(f"workout name [{default_workout_name}]? ")
+        if workout_name in ("q", "quit"):
             break
         workout: Workout
         if workout_name == "":
+            workout_name = default_workout_name
             workout_id += 1
-            workout_name = f"workout#{workout_id}"
+            default_workout_name = f"workout#{workout_id}"
         workout = Workout(name=workout_name, started=datetime.now())
         exercise_name: str
         while exercise_name := abbreviated_input("exercise name"):

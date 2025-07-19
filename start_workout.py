@@ -5,6 +5,7 @@ from typing import List
 from dataclasses import dataclass, field
 from datetime import datetime
 import pprint
+import shelve
 
 exercises: List[str] = ["squat", "bench press", "deadlift"]
 
@@ -46,11 +47,9 @@ def abbreviated_input(prompt: str, choices: List[str] = exercises + ["quit"]) ->
             print(f"Ambiguous input. It matches: {', '.join(matches)}. Try again.")
 
 
-if __name__ == "__main__":
-    workout_id: int = 1
-    logbook: Logbook = Logbook()
+def add_workout(logbook: Logbook) -> None:
+    global workout_id, default_workout_name
     workout_name: str
-    default_workout_name: str = f"workout#{workout_id}"
     while True:
         workout_name = input(f"workout name [{default_workout_name}]? ")
         if workout_name in ("q", "quit"):
@@ -72,4 +71,18 @@ if __name__ == "__main__":
             exercise: Exercise = Exercise(exercise_name, weight, reps)
             workout.exercises.append(exercise)
         logbook.workouts.append(workout)
+
+
+workout_id: int = 1
+default_workout_name: str = f"workout#{workout_id}"
+
+if __name__ == "__main__":
+    logbook_shelve: str = "logbook"
+    logbook: Logbook
+    with shelve.open(logbook_shelve, writeback=True) as shlv:
+        if "logbook" not in shlv:
+            shlv["logbook"] = Logbook()
+        logbook = shlv["logbook"]
+        pprint.pprint(logbook)
+        add_workout(logbook)
     pprint.pprint(logbook)

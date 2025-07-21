@@ -72,8 +72,9 @@ if __name__ == "__main__":
         squat = ExerciseName(name="Squat")
         bench = ExerciseName(name="Bench Press")
         session.add_all([squat, bench])
-        session.commit()
+        session.commit()  # NOT NULL constraint failed: exercises.exercise_name_id
         workout1 = Workout(started=datetime.now())
+        # without the commit() above `squat.id' is NULL
         new_exercise = Exercise(
             weight=100.0, reps=5, workout=workout1, exercise_name_id=squat.id
         )

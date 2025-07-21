@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
 from sqlalchemy import (
-    Column,
     Integer,
     Float,
     String,
@@ -11,7 +10,7 @@ from sqlalchemy import (
     create_engine,
 )
 from sqlalchemy.orm import (
-    declarative_base,
+    DeclarativeBase,
     relationship,
     Mapped,
     mapped_column,
@@ -20,7 +19,9 @@ from sqlalchemy.orm import (
 from datetime import datetime
 from typing import List
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
 
 
 class ExerciseName(Base):
@@ -28,9 +29,21 @@ class ExerciseName(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-
-    # Relationship to Exercise
     exercises: Mapped[List["Exercise"]] = relationship(back_populates="exercise_name")
+
+
+def ensure_exercise(session: Session, name: str) -> ExerciseName:
+    """Get existing ExerciseName object, or create a new one
+
+    return the ExerciseName object"""
+
+    instance = session.query(ExerciseName).filter_by(name=name).first()
+    if instance:
+        return instance
+    instance = ExerciseName(name=name)
+    session.add(instance)
+    session.commit()  # ensure id is assigned
+    return instance
 
 
 class Workout(Base):
@@ -69,14 +82,15 @@ if __name__ == "__main__":
     )
     Base.metadata.create_all(engine)
     with Session(engine) as session:
-        squat = ExerciseName(name="Squat")
-        bench = ExerciseName(name="Bench Press")
-        session.add_all([squat, bench])
+        squat = ensure_exercise(session, "squat")
+        bench_press = ensure_exercise(session, "bench press")
+        deadlift = ensure_exercise(session, "deadlift")
+        session.add_all([squat, bench_press, deadlift])
         session.commit()  # NOT NULL constraint failed: exercises.exercise_name_id
         workout1 = Workout(started=datetime.now())
         # without the commit() above `squat.id' is NULL
         new_exercise = Exercise(
-            weight=100.0, reps=5, workout=workout1, exercise_name_id=squat.id
+            weight=100.0, reps=5, workout=workout1, exercise_name=squat
         )
         session.add(new_exercise)
         session.add(workout1)

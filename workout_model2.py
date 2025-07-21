@@ -32,20 +32,6 @@ class ExerciseName(Base):
     exercises: Mapped[List["Exercise"]] = relationship(back_populates="exercise_name")
 
 
-def ensure_exercise(session: Session, name: str) -> ExerciseName:
-    """Get existing ExerciseName object, or create a new one
-
-    return the ExerciseName object"""
-
-    instance = session.query(ExerciseName).filter_by(name=name).first()
-    if instance:
-        return instance
-    instance = ExerciseName(name=name)
-    session.add(instance)
-    session.commit()  # ensure id is assigned
-    return instance
-
-
 class Workout(Base):
     __tablename__ = "workouts"
 
@@ -71,6 +57,20 @@ class Exercise(Base):
         ForeignKey("exercise_names.id"), nullable=False
     )
     exercise_name: Mapped["ExerciseName"] = relationship(back_populates="exercises")
+
+
+def ensure_exercise(session: Session, name: str) -> ExerciseName:
+    """Get existing ExerciseName object, or create a new one
+
+    return the ExerciseName object"""
+
+    instance = session.query(ExerciseName).filter_by(name=name).first()
+    if instance:
+        return instance
+    instance = ExerciseName(name=name)
+    session.add(instance)
+    session.commit()  # ensure id is assigned
+    return instance
 
 
 if __name__ == "__main__":

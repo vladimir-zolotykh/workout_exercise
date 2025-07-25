@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
+import argparse
+import argcomplete
 from sqlalchemy import (
     Integer,
     Float,
@@ -73,7 +75,20 @@ def ensure_exercise(session: Session, name: str) -> ExerciseName:
     return instance
 
 
+parser = argparse.ArgumentParser(
+    description="Do [some actions] on workout_model",
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+)
+
+parser.add_argument("--permanent-db", default="", help="what db file to use")
+parser.add_argument("command")
+
 if __name__ == "__main__":
+    argcomplete.autocomplete(parser)
+    args = parser.parse_args()
+    print(args)
+    exit(1)
+
     engine = create_engine(
         # "sqlite+pysqlite:///:memory:",
         "sqlite+pysqlite:///workout_model2_db.db",

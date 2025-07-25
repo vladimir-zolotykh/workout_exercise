@@ -3,6 +3,7 @@
 # PYTHON_ARGCOMPLETE_OK
 import argparse
 import argcomplete
+import pprint
 from sqlalchemy import (
     Integer,
     Float,
@@ -114,27 +115,47 @@ if __name__ == "__main__":
     Base.metadata.create_all(engine)
     with Session(engine) as session:
         for cmd in args.command:
-            exercises = {
-                name: ensure_exercise(session, name)
-                for name in (
-                    "front_squat",
-                    "squat",
-                    "bench_press",
-                    "deadlift",
-                    "pullup",
-                    "overhead_press",
-                    "biceps_curl",
+            exercises: dict[str, Exercise] = {}
+
+            def do_init():
+                nonlocal exercises
+                exercises: dict[str, Exercise] = {
+                    name: ensure_exercise(session, name)
+                    for name in (
+                        "front_squat",
+                        "squat",
+                        "bench_press",
+                        "deadlift",
+                        "pullup",
+                        "overhead_press",
+                        "biceps_curl",
+                    )
+                }
+                session.commit()
+
+            def show_workouts():
+                pprint.pprint(session.query(Workout))
+
+            def add_squat_workout():
+                workout = Workout(started=datetime.now())
+                new_exercise = Exercise(
+                    weight=100.0,
+                    reps=5,
+                    workout=workout,
+                    exercise_name=exercises["squat"],
                 )
-            }
-            session.commit()
-            if cmd == "init":
-                exit(1)
-            workout1 = Workout(started=datetime.now())
-            new_exercise = Exercise(
-                weight=100.0, reps=5, workout=workout1, exercise_name=exercises["squat"]
-            )
-            session.add(new_exercise)
-            session.add(workout1)
-            session.commit()
-            if cmd == "add-squat-workout":
-                exit(0)
+                session.add(new_exercise)
+                session.add(workout)
+
+            def remove_workout_id():
+                workout = session.query(Workout).get(10)
+                session.delete(workout)
+                session.commit()
+
+            commands = {
+                "init": do_init,
+                "add_squat_workout": add_squat_workout,
+                "show_workouts": show_workouts,
+                "add_squat_workout": add_squat_workout,
+                "remove-workout-id": remove_workout_id,
+            }[cmd]

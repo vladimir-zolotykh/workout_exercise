@@ -46,6 +46,9 @@ class Workout(Base):
         back_populates="workout", cascade="all, delete-orphan"
     )
 
+    def __repr__(self):
+        return f"<Workout(id={self.id}, started={self.started}, exercises={len(self.exercises)} items)>"
+
 
 class Exercise(Base):
     __tablename__ = "exercises"
@@ -115,11 +118,9 @@ if __name__ == "__main__":
     Base.metadata.create_all(engine)
     with Session(engine) as session:
         for cmd in args.command:
-            exercises: dict[str, Exercise] = {}
 
             def do_init():
-                nonlocal exercises
-                exercises: dict[str, Exercise] = {
+                {
                     name: ensure_exercise(session, name)
                     for name in (
                         "front_squat",
@@ -134,7 +135,9 @@ if __name__ == "__main__":
                 session.commit()
 
             def show_workouts():
-                pprint.pprint(session.query(Workout))
+                for w in session.query(Workout):
+                    print(w)
+                # pprint.pprint(list(session.query(Workout)))
 
             def add_squat_workout():
                 workout = Workout(started=datetime.now())
@@ -142,7 +145,7 @@ if __name__ == "__main__":
                     weight=100.0,
                     reps=5,
                     workout=workout,
-                    exercise_name=exercises["squat"],
+                    exercise_name=ensure_exercise(session, "squat"),
                 )
                 session.add(new_exercise)
                 session.add(workout)
@@ -154,8 +157,8 @@ if __name__ == "__main__":
 
             commands = {
                 "init": do_init,
-                "add_squat_workout": add_squat_workout,
-                "show_workouts": show_workouts,
-                "add_squat_workout": add_squat_workout,
+                "add-squat-workout": add_squat_workout,
+                "show-workouts": show_workouts,
+                "add-squat-workout": add_squat_workout,
                 "remove-workout-id": remove_workout_id,
-            }[cmd]
+            }[cmd]()

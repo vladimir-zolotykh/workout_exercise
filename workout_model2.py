@@ -82,15 +82,31 @@ if __name__ == "__main__":
     )
     Base.metadata.create_all(engine)
     with Session(engine) as session:
+        exercises = {
+            name: ensure_exercise(session, name)
+            for name in (
+                "front_squat",
+                "squat",
+                "bench_press",
+                "deadlift",
+                "pullup",
+                "overhead_press",
+                "biceps_curl",
+            )
+        }
+        front_squat = ensure_exercise(session, "front_squat")
         squat = ensure_exercise(session, "squat")
         bench_press = ensure_exercise(session, "bench press")
         deadlift = ensure_exercise(session, "deadlift")
+        pullup = ensure_exercise(session, "pullup")
+        overhead_press = ensure_exercise(session, "overhead_press")
+        biceps_curl = ensure_exercise(session, "biceps_curl")
         session.add_all([squat, bench_press, deadlift])
         session.commit()  # NOT NULL constraint failed: exercises.exercise_name_id
         workout1 = Workout(started=datetime.now())
         # without the commit() above `squat.id' is NULL
         new_exercise = Exercise(
-            weight=100.0, reps=5, workout=workout1, exercise_name=squat
+            weight=100.0, reps=5, workout=workout1, exercise_name=exercises["squat"]
         )
         session.add(new_exercise)
         session.add(workout1)

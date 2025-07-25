@@ -9,6 +9,7 @@ from sqlalchemy import (
     String,
     DateTime,
     ForeignKey,
+    Engine,
     create_engine,
 )
 from sqlalchemy.orm import (
@@ -80,49 +81,60 @@ parser = argparse.ArgumentParser(
     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
 )
 
-parser.add_argument("--permanent-db", default="", help="what db file to use")
-parser.add_argument("command")
+parser.add_argument(
+    "--permanent-db", default="workout_model2_db.db", help="what db file to use"
+)
+parser.add_argument("--memory-db", help="use memory db")
+parser.add_argument(
+    "command",
+    nargs="+",
+    choices=["init", "show-workouts", "add-squat-workout", "remove-workout-id"],
+)
 
 if __name__ == "__main__":
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
-    print(args)
-    exit(1)
 
-    engine = create_engine(
-        # "sqlite+pysqlite:///:memory:",
-        "sqlite+pysqlite:///workout_model2_db.db",
-        echo=True,
-        future=True,
-    )
+    engine: Engine
+    if args.memory_db:
+        engine = create_engine(
+            "sqlite+pysqlite:///:memory:",
+            echo=True,
+            future=True,
+        )
+    elif args.permanent_db:
+        engine = create_engine(
+            f"sqlite+pysqlite:///{args.permanent_db}",
+            echo=True,
+            future=True,
+        )
+    else:
+        raise RuntimeError("--permanent-db or --memory-db expected")
+
     Base.metadata.create_all(engine)
     with Session(engine) as session:
-        exercises = {
-            name: ensure_exercise(session, name)
-            for name in (
-                "front_squat",
-                "squat",
-                "bench_press",
-                "deadlift",
-                "pullup",
-                "overhead_press",
-                "biceps_curl",
+        for cmd in args.command:
+            exercises = {
+                name: ensure_exercise(session, name)
+                for name in (
+                    "front_squat",
+                    "squat",
+                    "bench_press",
+                    "deadlift",
+                    "pullup",
+                    "overhead_press",
+                    "biceps_curl",
+                )
+            }
+            session.commit()
+            if cmd == "init":
+                exit(1)
+            workout1 = Workout(started=datetime.now())
+            new_exercise = Exercise(
+                weight=100.0, reps=5, workout=workout1, exercise_name=exercises["squat"]
             )
-        }
-        front_squat = ensure_exercise(session, "front_squat")
-        squat = ensure_exercise(session, "squat")
-        bench_press = ensure_exercise(session, "bench press")
-        deadlift = ensure_exercise(session, "deadlift")
-        pullup = ensure_exercise(session, "pullup")
-        overhead_press = ensure_exercise(session, "overhead_press")
-        biceps_curl = ensure_exercise(session, "biceps_curl")
-        session.add_all([squat, bench_press, deadlift])
-        session.commit()  # NOT NULL constraint failed: exercises.exercise_name_id
-        workout1 = Workout(started=datetime.now())
-        # without the commit() above `squat.id' is NULL
-        new_exercise = Exercise(
-            weight=100.0, reps=5, workout=workout1, exercise_name=exercises["squat"]
-        )
-        session.add(new_exercise)
-        session.add(workout1)
-        session.commit()
+            session.add(new_exercise)
+            session.add(workout1)
+            session.commit()
+            if cmd == "add-squat-workout":
+                exit(0)

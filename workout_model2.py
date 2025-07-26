@@ -35,6 +35,9 @@ class ExerciseName(Base):
     name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     exercises: Mapped[List["Exercise"]] = relationship(back_populates="exercise_name")
 
+    def __repr__(self):
+        return f"<ExerciseName(id={self.id}, name={self.name})>"
+
 
 class Workout(Base):
     __tablename__ = "workouts"
@@ -47,7 +50,8 @@ class Workout(Base):
     )
 
     def __repr__(self):
-        return f"<Workout(id={self.id}, started={self.started}, exercises={len(self.exercises)} items)>"
+        # return f"<Workout(id={self.id}, started={self.started}, exercises={len(self.exercises)} items)>"
+        return f"<Workout(id={self.id}, started={self.started}, exercises={self.exercises!r})>"
 
 
 class Exercise(Base):

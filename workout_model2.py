@@ -52,7 +52,7 @@ class Workout(Base):
     def __repr__(self):
         # return f"<Workout(id={self.id}, started={self.started}, exercises={len(self.exercises)} items)>"
         return (
-            f"<Workout(id={self.id}, started={self.started}, "
+            f"<Workout(id={self.id}, started={self.started.date().isoformat()}, "
             f"exercises={', '.join(e.exercise_name.name for e in self.exercises)}>"
         )
 

@@ -65,6 +65,9 @@ class Exercise(Base):
     )
     exercise_name: Mapped["ExerciseName"] = relationship(back_populates="exercises")
 
+    def __repr__(self):
+        return f"<Exercise(id={self.id}, name={self.exercise_name}, weight={self.weight}, reps={self.reps})>"
+
 
 def ensure_exercise(session: Session, name: str) -> ExerciseName:
     """Get existing ExerciseName object, or create a new one

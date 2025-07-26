@@ -142,9 +142,9 @@ if __name__ == "__main__":
     with Session(engine) as session:
         for cmd in args.command:
 
-            def do_init():
-                {
-                    name: ensure_exercise(session, name)
+            def do_init() -> None:
+                (
+                    ensure_exercise(session, name)
                     for name in (
                         "front_squat",
                         "squat",
@@ -154,7 +154,7 @@ if __name__ == "__main__":
                         "overhead_press",
                         "biceps_curl",
                     )
-                }
+                )
                 session.commit()
 
             def show_exercise_names():

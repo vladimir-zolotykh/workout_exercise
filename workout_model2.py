@@ -93,6 +93,9 @@ parser.add_argument(
 )
 parser.add_argument("--memory-db", help="use memory db")
 parser.add_argument(
+    "--echo", help="Show db commands", action="store_true", default=False
+)
+parser.add_argument(
     "command",
     nargs="+",
     choices=["init", "show-workouts", "add-squat-workout", "remove-workout-id"],
@@ -106,13 +109,13 @@ if __name__ == "__main__":
     if args.memory_db:
         engine = create_engine(
             "sqlite+pysqlite:///:memory:",
-            echo=True,
+            echo=args.echo,
             future=True,
         )
     elif args.permanent_db:
         engine = create_engine(
             f"sqlite+pysqlite:///{args.permanent_db}",
-            echo=True,
+            echo=args.echo,
             future=True,
         )
     else:

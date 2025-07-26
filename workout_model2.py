@@ -148,9 +148,8 @@ if __name__ == "__main__":
                 session.commit()
 
             def show_workouts():
-                for w in session.query(Workout):
+                for w in session.query(Workout).all():
                     print(w)
-                # pprint.pprint(list(session.query(Workout)))
 
             def add_squat_workout():
                 workout = Workout(started=datetime.now())
@@ -161,7 +160,7 @@ if __name__ == "__main__":
                     exercise_name=ensure_exercise(session, "squat"),
                 )
                 session.add(new_exercise)
-                session.add(workout)
+                session.commit()
 
             def remove_workout_id():
                 workout = session.query(Workout).get(10)

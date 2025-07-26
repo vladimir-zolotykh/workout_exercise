@@ -115,13 +115,6 @@ parser.add_argument(
     "command",
     nargs="+",
     choices=ALL_COMMANDS,
-    # choices=[
-    #     "init",
-    #     "show-exercise-names",
-    #     "show-workouts",
-    #     "add-squat-workout",
-    #     "remove-workout-id",
-    # ],
 )
 
 
@@ -197,11 +190,3 @@ if __name__ == "__main__":
                 remove_workout_id,
             ]
             {cmd: func for cmd, func in zip(ALL_COMMANDS, all_functions)}[cmd]()
-            # commands = {
-            #     "init": do_init,
-            #     "add-squat-workout": add_squat_workout,
-            #     "show-exercise-names": show_exercise_names,
-            #     "show-workouts": show_workouts,
-            #     "add-squat-workout": add_squat_workout,
-            #     "remove-workout-id": remove_workout_id,
-            # }[cmd]()

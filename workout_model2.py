@@ -102,17 +102,28 @@ parser.add_argument("--memory-db", help="use memory db")
 parser.add_argument(
     "--echo", help="Show db commands", action="store_true", default=False
 )
+ALL_COMMANDS: list[str] = [
+    "init",
+    "add-squat-workout",
+    "show-exercise-names",
+    "show-workouts",
+    "add-squat-workout",
+    "remove-workout-id",
+]
+
 parser.add_argument(
     "command",
     nargs="+",
-    choices=[
-        "init",
-        "show-exercise-names",
-        "show-workouts",
-        "add-squat-workout",
-        "remove-workout-id",
-    ],
+    choices=ALL_COMMANDS,
+    # choices=[
+    #     "init",
+    #     "show-exercise-names",
+    #     "show-workouts",
+    #     "add-squat-workout",
+    #     "remove-workout-id",
+    # ],
 )
+
 
 if __name__ == "__main__":
     argcomplete.autocomplete(parser)
@@ -177,11 +188,20 @@ if __name__ == "__main__":
                 session.delete(workout)
                 session.commit()
 
-            commands = {
-                "init": do_init,
-                "add-squat-workout": add_squat_workout,
-                "show-exercise-names": show_exercise_names,
-                "show-workouts": show_workouts,
-                "add-squat-workout": add_squat_workout,
-                "remove-workout-id": remove_workout_id,
-            }[cmd]()
+            all_functions = [
+                do_init,
+                add_squat_workout,
+                show_exercise_names,
+                show_workouts,
+                add_squat_workout,
+                remove_workout_id,
+            ]
+            {cmd: func for cmd, func in zip(ALL_COMMANDS, all_functions)}[cmd]()
+            # commands = {
+            #     "init": do_init,
+            #     "add-squat-workout": add_squat_workout,
+            #     "show-exercise-names": show_exercise_names,
+            #     "show-workouts": show_workouts,
+            #     "add-squat-workout": add_squat_workout,
+            #     "remove-workout-id": remove_workout_id,
+            # }[cmd]()

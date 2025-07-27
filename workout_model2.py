@@ -143,18 +143,16 @@ if __name__ == "__main__":
         for cmd in args.command:
 
             def do_init() -> None:
-                (
+                for name in (
+                    "front_squat",
+                    "squat",
+                    "bench_press",
+                    "deadlift",
+                    "pullup",
+                    "overhead_press",
+                    "biceps_curl",
+                ):
                     ensure_exercise(session, name)
-                    for name in (
-                        "front_squat",
-                        "squat",
-                        "bench_press",
-                        "deadlift",
-                        "pullup",
-                        "overhead_press",
-                        "biceps_curl",
-                    )
-                )
                 session.commit()
 
             def show_exercise_names():

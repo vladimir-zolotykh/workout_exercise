@@ -1,93 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
-import argparse
-import argcomplete
-import pprint
-from sqlalchemy import (
-    Integer,
-    Float,
-    String,
-    DateTime,
-    ForeignKey,
+from sqlalchemy.orm import (
     Engine,
     create_engine,
 )
-from sqlalchemy.orm import (
-    DeclarativeBase,
-    relationship,
-    Mapped,
-    mapped_column,
-    Session,
-)
-from datetime import datetime
-from typing import List
 
-
-class Base(DeclarativeBase):
-    pass
-
-
-class ExerciseName(Base):
-    __tablename__ = "exercise_names"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-    exercises: Mapped[List["Exercise"]] = relationship(back_populates="exercise_name")
-
-    def __repr__(self):
-        return f"<ExerciseName(id={self.id}, name={self.name})>"
-
-
-class Workout(Base):
-    __tablename__ = "workouts"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    started: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
-    exercises: Mapped[List["Exercise"]] = relationship(
-        back_populates="workout", cascade="all, delete-orphan"
-    )
-
-    def __repr__(self):
-        # return f"<Workout(id={self.id}, started={self.started}, exercises={len(self.exercises)} items)>"
-        return (
-            f"<Workout(id={self.id}, started={self.started.date().isoformat()}, "
-            f"exercises={', '.join(e.exercise_name.name for e in self.exercises)}>"
-        )
-
-
-class Exercise(Base):
-    __tablename__ = "exercises"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    weight: Mapped[float] = mapped_column(Float, nullable=False)
-    reps: Mapped[int] = mapped_column(Integer, nullable=False)
-
-    workout_id: Mapped[int] = mapped_column(ForeignKey("workouts.id"), nullable=False)
-    workout: Mapped["Workout"] = relationship(back_populates="exercises")
-
-    exercise_name_id: Mapped[int] = mapped_column(
-        ForeignKey("exercise_names.id"), nullable=False
-    )
-    exercise_name: Mapped["ExerciseName"] = relationship(back_populates="exercises")
-
-    def __repr__(self):
-        return f"<Exercise(id={self.id}, name={self.exercise_name}, weight={self.weight}, reps={self.reps})>"
-
-
-def ensure_exercise(session: Session, name: str) -> ExerciseName:
-    """Get existing ExerciseName object, or create a new one
-
-    return the ExerciseName object"""
-
-    instance = session.query(ExerciseName).filter_by(name=name).first()
-    if instance:
-        return instance
-    instance = ExerciseName(name=name)
-    session.add(instance)
-    session.commit()  # ensure id is assigned
-    return instance
+import argparse
+import argcomplete
+import model as MD
+import Dispatcher as D
 
 
 parser = argparse.ArgumentParser(
@@ -138,53 +60,10 @@ if __name__ == "__main__":
     else:
         raise RuntimeError("--permanent-db or --memory-db expected")
 
-    Base.metadata.create_all(engine)
-    with Session(engine) as session:
+    MD.Base.metadata.create_all(engine)
+    with MD.Session(engine) as session:
+        dispatcher: D.Dispatcher = D.Dispatcher(session)
         for cmd in args.command:
-
-            def do_init() -> None:
-                for name in (
-                    "front_squat",
-                    "squat",
-                    "bench_press",
-                    "deadlift",
-                    "pullup",
-                    "overhead_press",
-                    "biceps_curl",
-                ):
-                    ensure_exercise(session, name)
-                session.commit()
-
-            def show_exercise_names():
-                for ex_name in session.query(ExerciseName).all():
-                    print(ex_name)
-
-            def show_workouts():
-                for w in session.query(Workout).all():
-                    print(w)
-
-            def add_squat_workout():
-                workout = Workout(started=datetime.now())
-                new_exercise = Exercise(
-                    weight=100.0,
-                    reps=5,
-                    workout=workout,
-                    exercise_name=ensure_exercise(session, "squat"),
-                )
-                session.add(new_exercise)
-                session.commit()
-
-            def remove_workout_id():
-                workout = session.query(Workout).get(10)
-                session.delete(workout)
-                session.commit()
-
-            all_functions = [
-                do_init,
-                add_squat_workout,
-                show_exercise_names,
-                show_workouts,
-                add_squat_workout,
-                remove_workout_id,
-            ]
-            {cmd: func for cmd, func in zip(ALL_COMMANDS, all_functions)}[cmd]()
+            {cmd: func for cmd, func in zip(D.Dispatcher.commands, all_functions)}[
+                cmd
+            ]()

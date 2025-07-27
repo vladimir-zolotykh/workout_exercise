@@ -24,26 +24,16 @@ parser.add_argument("--memory-db", help="use memory db")
 parser.add_argument(
     "--echo", help="Show db commands", action="store_true", default=False
 )
-ALL_COMMANDS: list[str] = [
-    "init",
-    "add-squat-workout",
-    "show-exercise-names",
-    "show-workouts",
-    "add-squat-workout",
-    "remove-workout-id",
-]
-
-parser.add_argument(
-    "command",
-    nargs="+",
-    choices=ALL_COMMANDS,
-)
 
 
 if __name__ == "__main__":
+    parser.add_argument(
+        "command",
+        nargs="+",
+        choices=D.Dispatcher.ensure_commands_collected(),
+    )
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
-
     engine: Engine
     if args.memory_db:
         engine = create_engine(
@@ -63,7 +53,5 @@ if __name__ == "__main__":
     MD.Base.metadata.create_all(engine)
     with MD.Session(engine) as session:
         dispatcher: D.Dispatcher = D.Dispatcher(session)
-        for cmd in args.command:
-            {cmd: func for cmd, func in zip(D.Dispatcher.commands, all_functions)}[
-                cmd
-            ]()
+        for cmd_name in args.command:
+            getattr(dispatcher, cmd_name)()

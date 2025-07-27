@@ -26,7 +26,7 @@ class Dispatcher:
 
     def __init__(self, session: Session) -> None:
         self.session = session
-        self.collect_commands()
+        self.ensure_commands_collected()
 
     @mark_command
     def init_exercises(self) -> None:
@@ -64,3 +64,8 @@ class Dispatcher:
             for name, obj in cls.__dict__.items()
             if callable(obj) and getattr(obj, "_is_command", False)
         ]
+
+    @classmethod
+    def ensure_commands_collected(cls):
+        if not cls.commands:
+            cls.collect_commands()

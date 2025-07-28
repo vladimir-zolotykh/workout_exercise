@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
-from sqlalchemy.orm import (
+from sqlalchemy import (
     Engine,
     create_engine,
 )
@@ -9,7 +9,7 @@ from sqlalchemy.orm import (
 import argparse
 import argcomplete
 import model as MD
-import Dispatcher as D
+import dispatcher as D
 
 
 parser = argparse.ArgumentParser(

@@ -40,6 +40,11 @@ class Dispatcher:
             print(ex_name)
 
     @mark_command
+    def show_workouts(self) -> None:
+        for w in self.session.query(MD.Workout).all():
+            print(w)
+
+    @mark_command
     def add_squat_workout(self):
         workout = MD.Workout(started=datetime.now())
         new_exercise = MD.Exercise(
@@ -66,6 +71,7 @@ class Dispatcher:
         ]
 
     @classmethod
-    def ensure_commands_collected(cls):
+    def ensure_commands_collected(cls) -> list[str] | None:
         if not cls.commands:
             cls.collect_commands()
+        return cls.commands
